@@ -38,3 +38,7 @@ insert into uau_usuario_autorizacao (usr_id, aut_id)
   values (1, 1);
 insert into ant_anotacao(ant_texto, ant_data_hora, ant_usr_id)
   values('Meu novo projeto', '2023-08-01 19:10', 1);
+
+create user spring with password 'pass123';
+
+grant update, delete, insert, select on all tables in schema public to spring;
