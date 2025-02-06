@@ -1,5 +1,6 @@
 package br.gov.sp.fatec.springboot3app2025.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,15 +8,40 @@ import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.transaction.annotation.Transactional;
 
+import br.gov.sp.fatec.springboot3app2025.entity.Autorizacao;
 import br.gov.sp.fatec.springboot3app2025.entity.Usuario;
+import br.gov.sp.fatec.springboot3app2025.repository.AutorizacaoRepository;
 import br.gov.sp.fatec.springboot3app2025.repository.UsuarioRepository;
 
 @Service
-public class UsuarioService implements IUsuarioService {
+public class UsuarioService implements IUsuarioService{
     
     @Autowired
     private UsuarioRepository usuarioRepo;
+
+    @Autowired
+    private AutorizacaoRepository autRepo;
+
+    @Transactional
+    public Usuario novoUsuarioAutorizacao(String nome, 
+            String senha, String nomeAutorizacao) {
+        Usuario usuario = new Usuario(nome, senha);
+        Optional<Autorizacao> autOp = autRepo.findByNome(nomeAutorizacao);
+        Autorizacao autorizacao;
+        if(autOp.isEmpty()) {
+            autorizacao = new Autorizacao();
+            autorizacao.setNome(nomeAutorizacao);
+            autRepo.save(autorizacao);
+        }
+        else {
+            autorizacao = autOp.get();
+        }
+        usuario.setAutorizacoes(new ArrayList<Autorizacao>());
+        usuario.getAutorizacoes().add(autorizacao);
+        return usuarioRepo.save(usuario);
+    }
 
     public Usuario buscarPorId(Long id) {
         Optional<Usuario> usuarioOp = usuarioRepo.findById(id);
