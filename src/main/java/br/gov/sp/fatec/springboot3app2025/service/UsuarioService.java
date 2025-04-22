@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -24,10 +26,14 @@ public class UsuarioService implements IUsuarioService{
     @Autowired
     private AutorizacaoRepository autRepo;
 
+    @Autowired
+    private PasswordEncoder encoder;
+
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public Usuario novoUsuarioAutorizacao(String nome, 
             String senha, String nomeAutorizacao) {
-        Usuario usuario = new Usuario(nome, senha);
+        Usuario usuario = new Usuario(nome, encoder.encode(senha));
         Optional<Autorizacao> autOp = autRepo.findByNome(nomeAutorizacao);
         Autorizacao autorizacao;
         if(autOp.isEmpty()) {
@@ -51,15 +57,18 @@ public class UsuarioService implements IUsuarioService{
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Id inválido!");
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public Usuario novoUsuario(Usuario usuario) {
         if(usuario == null ||
                 usuario.getNome() == null ||
                 usuario.getSenha() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome e senha inválidos!");
         }
+        usuario.setSenha(encoder.encode(usuario.getSenha()));
         return usuarioRepo.save(usuario);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public List<Usuario> buscarTodos() {
         return usuarioRepo.findAll();
     }
