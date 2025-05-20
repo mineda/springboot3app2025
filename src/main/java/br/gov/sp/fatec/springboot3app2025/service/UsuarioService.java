@@ -68,7 +68,6 @@ public class UsuarioService implements IUsuarioService{
         return usuarioRepo.save(usuario);
     }
 
-    @PreAuthorize("isAuthenticated()")
     public List<Usuario> buscarTodos() {
         return usuarioRepo.findAll();
     }
